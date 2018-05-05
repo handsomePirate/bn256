@@ -14,6 +14,7 @@
 package bn256
 
 import (
+  "crypto/sha256"
 	"crypto/rand"
 	"errors"
 	"io"
@@ -93,6 +94,40 @@ func (e *G1) Set(a *G1) *G1 {
 	}
 	e.p.Set(a.p)
 	return e
+}
+
+// hash to point, use to generate random EC points without the private keys being known
+// Should ideally be something like this: https://www.di.ens.fr/~fouque/pub/latincrypt12.pdf
+// but using try and increment method for now: https://www.normalesup.org/~tibouchi/papers/bnhash-scis.pdf
+// NOTE: Susceptible to timing attacks
+func (e *G1) Hash(m string) *G1 {
+  maxRetries := int8(127)
+  for i := int8(0); i < maxRetries; i++ {
+    hashInput := append([]byte(m), byte(i))
+    hash := sha256.Sum256(hashInput)
+    x := new(big.Int).SetBytes(hash[:])
+    x = x.Mod(x, P)
+    x_sqr := new(big.Int).Mul(x, x)
+    x_cbe := new(big.Int).Mul(x_sqr, x)
+    t := new(big.Int).Add(x_cbe, big.NewInt(3))
+    y := new(big.Int).ModSqrt(t, P) // TODO randomly choose between + and - y value
+    if y != nil {
+      lenY := len(y.Bytes())
+      yBytes := y.Bytes()
+      for j := lenY; j < 32; j++ {
+        yBytes = append(yBytes, byte(0))
+      }
+      lenX := len(x.Bytes())
+      xBytes := x.Bytes()
+      for j := lenX; j < 32; j++ {
+        xBytes = append(xBytes, byte(0))
+      }
+      allBytes := append(xBytes, yBytes...)
+      e.Unmarshal(allBytes)
+      return e
+    }
+  }
+  return e
 }
 
 // Marshal converts e to a byte slice.
