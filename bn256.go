@@ -99,7 +99,7 @@ func (e *G1) Set(a *G1) *G1 {
 // hash to point, use to generate random EC points without the private keys being known
 // Should ideally be something like this: https://www.di.ens.fr/~fouque/pub/latincrypt12.pdf
 // but using try and increment method for now: https://www.normalesup.org/~tibouchi/papers/bnhash-scis.pdf
-// NOTE: Susceptible to timing attacks
+// NOTE: Susceptible to timing attacks (not an issue if input data is publicly known)
 func (e *G1) Hash(m string) *G1 {
   maxRetries := int8(127)
   for i := int8(0); i < maxRetries; i++ {
