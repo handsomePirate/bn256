@@ -115,12 +115,12 @@ func (e *G1) Hash(m string) *G1 {
       lenY := len(y.Bytes())
       yBytes := y.Bytes()
       for j := lenY; j < 32; j++ {
-        yBytes = append(yBytes, byte(0))
+        yBytes = append([]byte{byte(0)}, yBytes...)
       }
       lenX := len(x.Bytes())
       xBytes := x.Bytes()
       for j := lenX; j < 32; j++ {
-        xBytes = append(xBytes, byte(0))
+        xBytes = append([]byte{byte(0)}, xBytes...)
       }
       allBytes := append(xBytes, yBytes...)
       e.Unmarshal(allBytes)
