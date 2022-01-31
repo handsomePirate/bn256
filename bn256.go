@@ -40,8 +40,8 @@ type SerializedG1 struct {
 	Data [16]uint64
 }
 
-func (g *G1) SerializeG1() (s *SerializedG1) {
-	s = new(SerializedG1)
+func (g *G1) SerializeG1() *SerializedG1 {
+	s := new(SerializedG1)
 	s.Data[0] = g.p.x[0]
 	s.Data[1] = g.p.x[1]
 	s.Data[2] = g.p.x[2]
@@ -58,11 +58,11 @@ func (g *G1) SerializeG1() (s *SerializedG1) {
 	s.Data[13] = g.p.t[1]
 	s.Data[14] = g.p.t[2]
 	s.Data[15] = g.p.t[3]
-	return
+	return s
 }
 
-func (s *SerializedG1) DeserializeG1() (g *G1) {
-	g = new(G1)
+func (s *SerializedG1) DeserializeG1() *G1 {
+	g := new(G1)
 	g.p.x[0] = s.Data[0]
 	g.p.x[1] = s.Data[1]
 	g.p.x[2] = s.Data[2]
@@ -79,7 +79,7 @@ func (s *SerializedG1) DeserializeG1() (g *G1) {
 	g.p.t[1] = s.Data[13]
 	g.p.t[2] = s.Data[14]
 	g.p.t[3] = s.Data[15]
-	return
+	return g
 }
 
 // RandomG1 returns x and g₁ˣ where x is a random, non-zero number read from r.
