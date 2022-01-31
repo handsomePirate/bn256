@@ -14,8 +14,8 @@
 package bn256
 
 import (
-  "crypto/sha256"
 	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"io"
 	"math/big"
@@ -34,6 +34,52 @@ func randomK(r io.Reader) (k *big.Int, err error) {
 // output of an operation, but cannot be used as an input.
 type G1 struct {
 	p *curvePoint
+}
+
+type SerializedG1 struct {
+	Data [16]uint64
+}
+
+func (g *G1) SerializeG1() (s *SerializedG1) {
+	s = new(SerializedG1)
+	s.Data[0] = g.p.x[0]
+	s.Data[1] = g.p.x[1]
+	s.Data[2] = g.p.x[2]
+	s.Data[3] = g.p.x[3]
+	s.Data[4] = g.p.y[0]
+	s.Data[5] = g.p.y[1]
+	s.Data[6] = g.p.y[2]
+	s.Data[7] = g.p.y[3]
+	s.Data[8] = g.p.z[0]
+	s.Data[9] = g.p.z[1]
+	s.Data[10] = g.p.z[2]
+	s.Data[11] = g.p.z[3]
+	s.Data[12] = g.p.t[0]
+	s.Data[13] = g.p.t[1]
+	s.Data[14] = g.p.t[2]
+	s.Data[15] = g.p.t[3]
+	return
+}
+
+func (s *SerializedG1) DeserializeG1() (g *G1) {
+	g = new(G1)
+	g.p.x[0] = s.Data[0]
+	g.p.x[1] = s.Data[1]
+	g.p.x[2] = s.Data[2]
+	g.p.x[3] = s.Data[3]
+	g.p.y[0] = s.Data[4]
+	g.p.y[1] = s.Data[5]
+	g.p.y[2] = s.Data[6]
+	g.p.y[3] = s.Data[7]
+	g.p.z[0] = s.Data[8]
+	g.p.z[1] = s.Data[9]
+	g.p.z[2] = s.Data[10]
+	g.p.z[3] = s.Data[11]
+	g.p.t[0] = s.Data[12]
+	g.p.t[1] = s.Data[13]
+	g.p.t[2] = s.Data[14]
+	g.p.t[3] = s.Data[15]
+	return
 }
 
 // RandomG1 returns x and g₁ˣ where x is a random, non-zero number read from r.
@@ -101,33 +147,33 @@ func (e *G1) Set(a *G1) *G1 {
 // but using try and increment method for now: https://www.normalesup.org/~tibouchi/papers/bnhash-scis.pdf
 // NOTE: Susceptible to timing attacks (not an issue if input data is publicly known)
 func (e *G1) Hash(m string) *G1 {
-  maxRetries := int8(127)
-  for i := int8(0); i < maxRetries; i++ {
-    hashInput := append([]byte(m), byte(i))
-    hash := sha256.Sum256(hashInput)
-    x := new(big.Int).SetBytes(hash[:])
-    x = x.Mod(x, P)
-    x_sqr := new(big.Int).Mul(x, x)
-    x_cbe := new(big.Int).Mul(x_sqr, x)
-    t := new(big.Int).Add(x_cbe, big.NewInt(3))
-    y := new(big.Int).ModSqrt(t, P) // TODO randomly choose between + and - y value
-    if y != nil {
-      lenY := len(y.Bytes())
-      yBytes := y.Bytes()
-      for j := lenY; j < 32; j++ {
-        yBytes = append([]byte{byte(0)}, yBytes...)
-      }
-      lenX := len(x.Bytes())
-      xBytes := x.Bytes()
-      for j := lenX; j < 32; j++ {
-        xBytes = append([]byte{byte(0)}, xBytes...)
-      }
-      allBytes := append(xBytes, yBytes...)
-      e.Unmarshal(allBytes)
-      return e
-    }
-  }
-  return e
+	maxRetries := int8(127)
+	for i := int8(0); i < maxRetries; i++ {
+		hashInput := append([]byte(m), byte(i))
+		hash := sha256.Sum256(hashInput)
+		x := new(big.Int).SetBytes(hash[:])
+		x = x.Mod(x, P)
+		x_sqr := new(big.Int).Mul(x, x)
+		x_cbe := new(big.Int).Mul(x_sqr, x)
+		t := new(big.Int).Add(x_cbe, big.NewInt(3))
+		y := new(big.Int).ModSqrt(t, P) // TODO randomly choose between + and - y value
+		if y != nil {
+			lenY := len(y.Bytes())
+			yBytes := y.Bytes()
+			for j := lenY; j < 32; j++ {
+				yBytes = append([]byte{byte(0)}, yBytes...)
+			}
+			lenX := len(x.Bytes())
+			xBytes := x.Bytes()
+			for j := lenX; j < 32; j++ {
+				xBytes = append([]byte{byte(0)}, xBytes...)
+			}
+			allBytes := append(xBytes, yBytes...)
+			e.Unmarshal(allBytes)
+			return e
+		}
+	}
+	return e
 }
 
 // Marshal converts e to a byte slice.
