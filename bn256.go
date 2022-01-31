@@ -63,6 +63,7 @@ func (g *G1) SerializeG1() *SerializedG1 {
 
 func (s *SerializedG1) DeserializeG1() *G1 {
 	g := new(G1)
+	g.p = &curvePoint{}
 	g.p.x[0] = s.Data[0]
 	g.p.x[1] = s.Data[1]
 	g.p.x[2] = s.Data[2]
