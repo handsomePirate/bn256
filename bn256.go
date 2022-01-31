@@ -40,9 +40,10 @@ type SerializedG1 struct {
 	Data [16]uint64
 }
 
-func NewG1() *SerializedG1 {
-	s := new(G1).SerializeG1()
-	return s
+func NewG1() *G1 {
+	g := new(G1)
+	g.p = &curvePoint{}
+	return g
 }
 
 func (g *G1) SerializeG1() *SerializedG1 {
